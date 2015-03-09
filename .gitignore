@@ -7,3 +7,4 @@ _replicator
 pouch__all_dbs__
 todo/**
 todos/**
+pouch__auth_sessions__/

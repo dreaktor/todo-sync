@@ -6,9 +6,8 @@
   var newTodoDom = document.getElementById('new-todo');
   var syncDom = document.getElementById('sync-wrapper');
 
-
-  var db = new PouchDB('todos');
-  var remoteCouch = 'http://localhost:3000/db/todos';
+  var db = new PouchDB('todos', { adapter: 'websql' });
+  var remoteCouch = 'http://192.168.0.71:3000/db/todos';
 
 
   // We have to create a new todo document and enter it in the database
@@ -20,7 +19,9 @@
     };
     db.put(todo, function callback(err, result) {
       if (!err) {
-        console.log('Successfully posted a todo!');
+          console.log('Successfully posted a todo!');
+          var div = document.getElementById('sync-success');
+          div.innerText = 'Successfully posted a todo!';
       }
     });
   }
@@ -36,8 +37,16 @@
 
   // Show the current list of todos by reading them from the database
   function showTodos() {
-    db.allDocs({include_docs: true, descending: true}, function(err, doc) {
-      redrawTodosUI(doc.rows);
+      
+      db.allDocs({ include_docs: true, descending: true }, function (err, doc) {
+          if (!err) {
+              var div = document.getElementById('sync-success');
+              div.innerText = 'Update detected - new data to display! ' + doc.rows.length;
+              redrawTodosUI(doc.rows);
+          } else {
+              var div = document.getElementById('sync-success');
+              div.innerText = 'Error: ' + err.message + ' / ' + err.status;
+          }
     });
   }
 
@@ -77,8 +86,11 @@
 
 
   // There was some form or error syncing
-  function syncError() {
-    syncDom.setAttribute('data-sync-state', 'error');
+  function syncError(error) {
+      syncDom.setAttribute('data-sync-state', 'error');
+      var div = document.getElementById('sync-error');
+      div.innerText = error.message + ' (' + error.status + ' ' + error.statusText + ')';
+    
   }
 
 
